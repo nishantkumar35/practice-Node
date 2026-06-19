@@ -71,4 +71,11 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+const home = (req,res)=>{
+  return res.status(200).json({
+    success: true,
+    user : req.user
+  })
+}
+
+module.exports = { register, login, home };
