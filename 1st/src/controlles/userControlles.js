@@ -71,11 +71,30 @@ const login = async (req, res) => {
   }
 };
 
-const home = (req,res)=>{
-  return res.status(200).json({
-    success: true,
-    user : req.user
-  })
+const home = async (req,res)=>{
+  try{
+    const result = await Promise.allSettled([
+      fetch('https://jsonplaceholder.typicode.com/users/1').then((r)=>r.json()),
+      fetch('https://jsonplaceholder.typicode.com/posts/1').then((r)=>r.json()),
+      fetch('https://jsonplaceholder.typicode.com/comments/1').then((r)=>r.json())
+    ]);
+
+    const [userResult, postResult, commentResult] = result;
+    return res.status(200).json({
+      success : true,
+      user : userResult.status == 'fulfilled' ? userResult.value : null,
+      post : postResult.status == 'fulfilled' ? postResult.value : null,
+      comment : commentResult.status == 'fulfilled' ? commentResult.value : null,
+      error : result.filter((r) => r.status === 'rejected').map((r) => r.reason?.message)
+    })
+  }catch(e){
+    console.log(e);
+    return res.status(500).json({
+      success: false,
+      message: "data loading failed",
+      error: e.message,
+    });
+  }
 }
 
 module.exports = { register, login, home };
